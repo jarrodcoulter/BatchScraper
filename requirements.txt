@@ -1,0 +1,4 @@
+firecrawl-py
+python-dotenv
+markdown2
+xhtml2pdf
