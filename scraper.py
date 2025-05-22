@@ -20,8 +20,8 @@ def sanitize_filename(filename):
     # Truncate if too long (optional, but good practice)
     return filename[:200] + ".pdf"
 
-def scrape_and_create_pdf(url_to_scrape):
-    """Scrapes a single URL and creates a PDF from its content."""
+def scrape_and_create_pdf(url_to_scrape, output_directory="pdfs"):
+    """Scrapes a single URL and creates a PDF from its content in the specified directory."""
     try:
         print(f"Scraping {url_to_scrape}...")
         scraped_data = app.scrape_url(
@@ -37,7 +37,9 @@ def scrape_and_create_pdf(url_to_scrape):
             
             # Sanitize title for filename, using a default if it's somehow still None or empty
             safe_title = article_title if article_title else 'untitled_scrape'
-            output_pdf_filename = sanitize_filename(safe_title)
+            base_filename = sanitize_filename(safe_title)
+            output_pdf_filename = os.path.join(output_directory, base_filename)
+
             markdown_content = scraped_data.markdown if hasattr(scraped_data, 'markdown') else None
 
             if markdown_content:
@@ -68,6 +70,13 @@ def scrape_and_create_pdf(url_to_scrape):
 
 if __name__ == "__main__":
     urls_filename = "urls.txt"
+    pdfs_output_directory = "pdfs"
+
+    # Ensure the output directory for PDFs exists
+    if not os.path.exists(pdfs_output_directory):
+        os.makedirs(pdfs_output_directory)
+        print(f"Created directory: {pdfs_output_directory}")
+
     try:
         with open(urls_filename, 'r') as f:
             urls_to_process = [line.strip() for line in f if line.strip()]
@@ -78,7 +87,7 @@ if __name__ == "__main__":
             print(f"Found {len(urls_to_process)} URL(s) to process from {urls_filename}.")
             for i, url in enumerate(urls_to_process):
                 print(f"\nProcessing URL {i+1}/{len(urls_to_process)}: {url}")
-                scrape_and_create_pdf(url)
+                scrape_and_create_pdf(url, pdfs_output_directory)
                 if i < len(urls_to_process) - 1: # Add delay if not the last URL
                     print("Waiting 1 second before next request...")
                     time.sleep(1)
